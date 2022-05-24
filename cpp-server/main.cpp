@@ -1,6 +1,61 @@
 #include <iostream>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <cstring>
+
+void error(const char *msg) {
+    perror(msg);
+    exit(1);
+}
+
+const int PORT = 20022;
+int connect_sockfd; // connect socket address length
+int msg_sockfd;     // message socket address length
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    printf("Starting server... \n");
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t clilen = sizeof(client_addr);;
+
+    printf("Opening connection socket... \n");
+    connect_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (connect_sockfd < 0) {
+        error("ERROR Couldn't open socket");
+    }
+
+    bzero((char *) &server_addr, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(PORT);
+
+    printf("Binding... \n");
+    if (bind(connect_sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+        error("ERROR Couldn't bind");
+    }
+
+    printf("Listening to connection on port %d... \n", PORT);
+    listen(connect_sockfd, 5);
+
+    msg_sockfd = accept(connect_sockfd, (struct sockaddr *) &client_addr, &clilen);
+    if (msg_sockfd < 0) {
+        error("ERROR on accept");
+    }
+
+    std::string msg = "Hello, world from server!\n";
+    send(msg_sockfd, &msg, msg.size(), 0);
+
+    char buffer[256];
+    bzero(buffer, 256);
+
+    long readNum = read(msg_sockfd, buffer, 255);
+    if (readNum < 0) {
+        error("ERROR reading from socket");
+    }
+
+    printf("Message from socket: %s\n", buffer);
+
+    close(msg_sockfd);
+    close(connect_sockfd);
+
     return 0;
 }
