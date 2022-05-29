@@ -8,37 +8,39 @@ import java.util.Scanner;
 public class Main {
 
   public static void main(String[] args) throws IOException {
-    System.out.println("Opening a socket...");
-    try (Socket socket = new Socket("127.0.0.1", 20023)) {
-      System.out.println("Configuring...");
-      try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-        try (BufferedReader in = new BufferedReader(
-            new InputStreamReader(socket.getInputStream()))) {
+    Socket socket = new Socket("127.0.0.1", 20023);
+    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-          final Thread userThread = new Thread(() -> {
-            // wait to socket initialize
-            try {
-              Thread.sleep(500);
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            }
-
-            Scanner sc = new Scanner(System.in);
-            while (true) {
-              String msg = sc.nextLine();
-              if ("exit".equals(msg)) {
-                sendExit(out);
-                break;
-              }
-              sendMsg(out, msg);
-            }
-          });
-          userThread.start();
-
-          readMsg(in);
-        }
+    final Thread userThread = new Thread(() -> {
+      // wait to socket initialize
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
-    }
+
+      Scanner sc = new Scanner(System.in);
+      System.out.println("Listening.. Write your message:");
+      while (true) {
+        String msg = sc.nextLine();
+        if ("exit".equals(msg)) {
+          sendExit(out);
+          try {
+            in.close();
+            out.close();
+            socket.close();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          break;
+        }
+        sendMsg(out, msg);
+      }
+    });
+    userThread.start();
+
+    readMsg(in);
   }
 
   private static void readMsg(BufferedReader in) throws IOException {
