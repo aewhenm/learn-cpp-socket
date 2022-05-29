@@ -7,8 +7,11 @@ import java.util.Scanner;
 
 public class Main {
 
+  private static final String HOST = "127.0.0.1";
+  private static final int PORT = 20023;
+
   public static void main(String[] args) throws IOException {
-    Socket socket = new Socket("127.0.0.1", 20023);
+    Socket socket = new Socket(HOST, PORT);
     PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
