@@ -63,6 +63,10 @@ int main() {
             printf("EXIT message from client! Shutting down...\n");
             break;
         } else if (type == 's') {
+            if(length < 1) {
+                printf("Message length %d, continuing...", length);
+                continue;
+            }
             std::string msg = std::string(buffer, 2, length);
             printf("Message from socket: %s\n", msg.c_str());
         }

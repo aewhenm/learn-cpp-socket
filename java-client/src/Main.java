@@ -65,6 +65,9 @@ public class Main {
 
     buff[0] = 's';
     buff[1] = (char) msg.length();
+    for (int i = 0; i < msg.length(); i++) {
+      buff[i + 2] = msg.charAt(i);
+    }
 
     System.out.println("Sending message: " + msg);
     out.print(buff);
@@ -73,9 +76,7 @@ public class Main {
 
   private static void sendExit(PrintWriter out) {
     char[] buff = new char[4096];
-
     buff[0] = '0';
-
     out.print(buff);
   }
 
