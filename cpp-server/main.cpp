@@ -8,7 +8,7 @@ void error(const char *msg) {
     exit(1);
 }
 
-const int PORT = 20022;
+const int PORT = 20023;
 int connect_sockfd; // connect socket address length
 int msg_sockfd;     // message socket address length
 
@@ -36,13 +36,25 @@ int main() {
     printf("Listening to connection on port %d... \n", PORT);
     listen(connect_sockfd, 5);
 
+    printf("Waiting for an accept... \n");
     msg_sockfd = accept(connect_sockfd, (struct sockaddr *) &client_addr, &clilen);
     if (msg_sockfd < 0) {
         error("ERROR on accept");
     }
 
+    printf("Sending message... \n");
+
     std::string msg = "Hello, world from server!\n";
-    send(msg_sockfd, &msg, msg.size(), 0);
+
+    char s_buff[4096];
+
+    s_buff[0] = 's';
+    s_buff[1] = msg.length();
+    for(int i = 0; i < msg.length(); i++) {
+        s_buff[i + 2] = msg[i];
+    }
+
+    send(msg_sockfd, s_buff, sizeof(s_buff), 0);
 
     char buffer[256];
     bzero(buffer, 256);
