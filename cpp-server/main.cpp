@@ -42,30 +42,35 @@ int main() {
         error("ERROR on accept");
     }
 
-    printf("Sending message... \n");
+    int msg_length = 4096;
 
-    std::string msg = "Hello, world from server!\n";
-
-    char s_buff[4096];
-
+    printf("Greeting... \n");
+    char s_buff[msg_length];
+    std::string msg = "Hello, world from server!";
     s_buff[0] = 's';
     s_buff[1] = msg.length();
-    for(int i = 0; i < msg.length(); i++) {
+    for (int i = 0; i < msg.length(); i++) {
         s_buff[i + 2] = msg[i];
     }
-
     send(msg_sockfd, s_buff, sizeof(s_buff), 0);
 
-    char buffer[256];
-    bzero(buffer, 256);
-
-    long readNum = read(msg_sockfd, buffer, 255);
-    if (readNum < 0) {
+    long readN;
+    char buffer[msg_length];
+    while ((readN = read(msg_sockfd, buffer, sizeof(buffer))) > 0) {
+        char type = buffer[0];
+        char length = buffer[1];
+        if (type == '0') {
+            printf("EXIT message from client! Shutting down...\n");
+            break;
+        } else if (type == 's') {
+            std::string msg = std::string(buffer, 2, length);
+            printf("Message from socket: %s\n", msg.c_str());
+        }
+        bzero(buffer, msg_length);
+    }
+    if (readN < 0) {
         error("ERROR reading from socket");
     }
-
-    printf("Message from socket: %s\n", buffer);
-
     close(msg_sockfd);
     close(connect_sockfd);
 
